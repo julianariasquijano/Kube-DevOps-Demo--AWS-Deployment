@@ -15,6 +15,10 @@ output "cluster_endpoint" {
   description = "Endpoint for EKS control plane"
   value       = module.eks.cluster_endpoint
 }
+output "cluster_arn" {
+  description = "ARN assigned for the EKS cluster"
+  value       = module.eks.cluster_arn
+}
 
 output "cluster_security_group_id" {
   description = "Security group ids attached to the cluster control plane"
