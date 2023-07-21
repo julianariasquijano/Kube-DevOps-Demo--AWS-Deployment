@@ -1,13 +1,8 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
+# Changes made after the initial copyrighted code are not covered by the copyright. 
 
 terraform {
-
-  cloud {
-    workspaces {
-      name = "learn-terraform-eks"
-    }
-  }
 
   required_providers {
     aws = {

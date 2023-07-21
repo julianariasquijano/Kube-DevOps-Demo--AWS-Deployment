@@ -1,5 +1,6 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
+# Changes made after the initial copyrighted code are not covered by the copyright. 
 
 provider "aws" {
   region = var.region
@@ -8,46 +9,63 @@ provider "aws" {
 data "aws_availability_zones" "available" {}
 
 locals {
-  cluster_name = "education-eks-${random_string.suffix.result}"
+  cluster_name = "${var.resources-prefix}-${random_string.suffix.result}"
 }
 
 resource "random_string" "suffix" {
   length  = 8
   special = false
 }
-
+/*
+Elements to be created:
+- VPC
+- Private subnets
+- Public subnets
+- NAT Gateway
+*/
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
 
-  name = "education-vpc"
+  name = "${var.resources-prefix}-vpc"
 
   cidr = "10.0.0.0/16"
+
+  #Assings to azs the first three regions defined
+  #Slice : startindex is inclusive, while endindex is exclusive
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
 
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
   public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 
   enable_nat_gateway   = true
+  #single_nat_gateway across the all the private networks
   single_nat_gateway   = true
   enable_dns_hostnames = true
 
   public_subnet_tags = {
     "kubernetes.io/cluster/${local.cluster_name}" = "shared"
     "kubernetes.io/role/elb"                      = 1
+    "solution"                                    = var.resources-prefix
   }
 
   private_subnet_tags = {
     "kubernetes.io/cluster/${local.cluster_name}" = "shared"
     "kubernetes.io/role/internal-elb"             = 1
+    "solution"                                    = var.resources-prefix
   }
 }
-
+/*
+Elements to be created:
+- EKS Cluster
+- EKS Managed node group
+*/
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "19.15.3"
 
   cluster_name    = local.cluster_name
+  #kubernetes version
   cluster_version = "1.27"
 
   vpc_id                         = module.vpc.vpc_id
@@ -61,22 +79,12 @@ module "eks" {
 
   eks_managed_node_groups = {
     one = {
-      name = "node-group-1"
+      name = "${var.resources-prefix}-node-group-1"
 
-      instance_types = ["t3.small"]
-
-      min_size     = 1
-      max_size     = 3
-      desired_size = 2
-    }
-
-    two = {
-      name = "node-group-2"
-
-      instance_types = ["t3.small"]
+      instance_types = ["t2.small"]
 
       min_size     = 1
-      max_size     = 2
+      max_size     = 1
       desired_size = 1
     }
   }
@@ -87,18 +95,25 @@ module "eks" {
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
-
+/*
+Elements to be created:
+- Single IAM role which can be assumed by trusted resources using OpenID Connect Federated Users.
+*/
 module "irsa-ebs-csi" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "4.7.0"
 
   create_role                   = true
-  role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
+  role_name                     = "${var.resources-prefix}-AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
   provider_url                  = module.eks.oidc_provider
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
+/*
+Elements to be created:
+- EKS ADDON to let the clusters manage the lifecycle of Amazon EBS volumes for persistent volumes
+*/
 resource "aws_eks_addon" "ebs-csi" {
   cluster_name             = module.eks.cluster_name
   addon_name               = "aws-ebs-csi-driver"
@@ -107,5 +122,6 @@ resource "aws_eks_addon" "ebs-csi" {
   tags = {
     "eks_addon" = "ebs-csi"
     "terraform" = "true"
+    "solution"  = var.resources-prefix
   }
 }
