@@ -1,8 +1,11 @@
 # Kube-DevOps-Demo--AWS-Deployment
-Demostration of Kubernetes deployment on AWS
+Demostration of Kubernetes deployment on AWS EKS
 
-Code initially based on the tutorial located in:
-- https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
+After executing the actual terraform code, the architecture should be:
+
+<img src="https://github.com/julianariasquijano/Kube-DevOps-Demo--AWS-Deployment/raw/main/images/Kube-DevOps-Demo--AWS-Deployment.png" width="35%">
+
+Code initially based on the repository located in:
 - https://github.com/hashicorp/learn-terraform-provision-eks-cluster
 
 IAM Account required permissions:
@@ -21,3 +24,9 @@ Then change to the new cluster context with:
 ```
 kubectl config use-context <context_name>
 ```
+
+Each availability zone configured for the VPC will have one private subnet and one public subnet
+
+References:
+
+- https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
