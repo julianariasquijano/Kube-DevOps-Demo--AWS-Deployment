@@ -3,7 +3,7 @@ Demostration of Kubernetes deployment on AWS EKS
 
 After executing the actual terraform code, the architecture should be:
 
-<img src="https://github.com/julianariasquijano/Kube-DevOps-Demo--AWS-Deployment/raw/master/images/Kube-DevOps-Demo--AWS-Deployment" width="35%">
+<img src="https://github.com/julianariasquijano/Kube-DevOps-Demo--AWS-Deployment/raw/master/images/Kube-DevOps-Demo--AWS-Deployment.png" width="35%">
 
 Code initially based on the repository located in:
 - https://github.com/hashicorp/learn-terraform-provision-eks-cluster
