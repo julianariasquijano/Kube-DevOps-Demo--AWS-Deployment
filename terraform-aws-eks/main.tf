@@ -134,3 +134,22 @@ resource "aws_eks_addon" "ebs-csi" {
     "solution"  = var.resources-prefix
   }
 }
+
+module "lb_role" {
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+
+  role_name = "${var.resources-prefix}_eks_lb_role"
+  attach_load_balancer_controller_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+    }
+  }
+
+  provisioner "local-exec" {
+    command = "eksctl create iamserviceaccount --name aws-load-balancer-controller --namespace kube-system --cluster ${module.eks.cluster_name} --role-name ${module.lb_role.iam_role_name} --approve"
+  }
+
+}
