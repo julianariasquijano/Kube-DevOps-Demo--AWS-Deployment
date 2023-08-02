@@ -147,7 +147,8 @@ module "lb_role" {
       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
     }
   }
-
+}
+resource "null_resource" "iamserviceaccount" {
   provisioner "local-exec" {
     command = "eksctl create iamserviceaccount --name aws-load-balancer-controller --namespace kube-system --cluster ${module.eks.cluster_name} --role-name ${module.lb_role.iam_role_name} --approve"
   }
