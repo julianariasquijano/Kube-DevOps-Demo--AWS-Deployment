@@ -87,6 +87,7 @@ module "eks" {
       max_size     = 1
       desired_size = 1
     }
+    /*
     two = {
       name = "${var.resources-prefix}-node-group-2"
 
@@ -95,7 +96,8 @@ module "eks" {
       min_size     = 1
       max_size     = 1
       desired_size = 1
-    }    
+    }
+    */ 
   }
 }
 
@@ -153,4 +155,32 @@ resource "null_resource" "iamserviceaccount" {
     command = "eksctl create iamserviceaccount --name aws-load-balancer-controller --namespace kube-system --cluster ${module.eks.cluster_name} --role-name ${module.lb_role.iam_role_name} --approve"
   }
 
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    token                  = module.eks.cluster.token
+  }
+}
+
+resource "helm_release" "ingress" {
+  name       = "ingress"
+  chart      = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  version    = "1.4.6"
+
+  set {
+    name  = "autoDiscoverAwsRegion"
+    value = "true"
+  }
+  set {
+    name  = "autoDiscoverAwsVpcID"
+    value = "true"
+  }
+  set {
+    name  = "clusterName"
+    value = local.cluster_name
+  }
 }
