@@ -110,6 +110,7 @@ data "aws_iam_policy" "ebs_csi_policy" {
 Elements to be created:
 - Single IAM role which can be assumed by trusted resources using OpenID Connect Federated Users.
 */
+/*
 module "irsa-ebs-csi" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "4.7.0"
@@ -120,11 +121,12 @@ module "irsa-ebs-csi" {
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
-
+*/
 /*
 Elements to be created:
 - EKS ADDON to let the clusters manage the lifecycle of Amazon EBS volumes for persistent volumes
 */
+/*
 resource "aws_eks_addon" "ebs-csi" {
   cluster_name             = module.eks.cluster_name
   addon_name               = "aws-ebs-csi-driver"
@@ -136,7 +138,7 @@ resource "aws_eks_addon" "ebs-csi" {
     "solution"  = var.resources-prefix
   }
 }
-
+*/
 module "lb_role" {
   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
@@ -152,16 +154,23 @@ module "lb_role" {
 }
 resource "null_resource" "iamserviceaccount" {
   provisioner "local-exec" {
-    command = "eksctl create iamserviceaccount --name aws-load-balancer-controller --namespace kube-system --cluster ${module.eks.cluster_name} --role-name ${module.lb_role.iam_role_name} --approve"
+    command = "eksctl create iamserviceaccount --name aws-load-balancer-controller --namespace kube-system --cluster ${module.eks.cluster_name}  --attach-role-arn ${module.lb_role.iam_role_arn} --approve --override-existing-serviceaccounts"
   }
 
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_name
+}
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_name
 }
 
 provider "helm" {
   kubernetes {
     host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-    token                  = module.eks.cluster.token
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
   }
 }
 
@@ -183,4 +192,7 @@ resource "helm_release" "ingress" {
     name  = "clusterName"
     value = local.cluster_name
   }
+
+  depends_on = [module.eks]
+
 }
