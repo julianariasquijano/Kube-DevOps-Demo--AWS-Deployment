@@ -75,6 +75,9 @@ module "eks" {
 
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
+    iam_role_additional_policies = {
+      AdministratorAccess = "arn:aws:iam::aws:policy/AdministratorAccess"
+    }    
 
   }
 
@@ -103,16 +106,14 @@ module "eks" {
   }
 }
 
-
+/*
+Elements to be created:
+- Single IAM role which can be assumed by trusted resources using OpenID Connect Federated Users.
 # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
-/*
-Elements to be created:
-- Single IAM role which can be assumed by trusted resources using OpenID Connect Federated Users.
-*/
-/*
+
 module "irsa-ebs-csi" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "4.7.0"
