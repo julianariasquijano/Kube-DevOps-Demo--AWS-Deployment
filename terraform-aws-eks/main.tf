@@ -196,6 +196,24 @@ resource "helm_release" "ingress" {
     value = local.cluster_name
   }
 
-  depends_on = [module.eks]
+  depends_on = [module.lb_role]
+
+}
+
+resource "null_resource" "console_config" {
+  provisioner "local-exec" {
+    command = "aws eks --region ${var.region} update-kubeconfig --name ${module.eks.cluster_name} && kubectl config use-context ${module.eks.cluster_arn}"
+  }
+
+  depends_on = [helm_release.ingress]
+
+}
+
+resource "null_resource" "create_hello_world_service" {
+  provisioner "local-exec" {
+    command = "cd .. && cd kubernetes-yaml && kubectl apply -f eks-ingress-hello.yaml && kubectl get ingress"
+  }
+
+  depends_on = [null_resource.console_config]
 
 }
