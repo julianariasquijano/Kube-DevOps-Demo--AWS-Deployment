@@ -4,6 +4,7 @@ Demostration of Kubernetes deployment on AWS EKS
 After executing the actual terraform code, the architecture should be:
 
 <img src="https://github.com/julianariasquijano/Kube-DevOps-Demo--AWS-Deployment/raw/main/images/Kube-DevOps-Demo--AWS-Deployment.png" width="100%">
+<img src="https://github.com/julianariasquijano/Kube-DevOps-Demo--AWS-Deployment/raw/main/images/Kube-DevOps-Demo--K8s-Deployment.png" width="60%">
 
 An ingress service is created. The terraform output will show the Address (endpoint) created for the ingress. Any way you chan check it with "kubectl get ingress"
 
