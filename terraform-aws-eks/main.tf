@@ -92,7 +92,7 @@ module "eks" {
       desired_size = 1
       capacity_type  = "SPOT"
     }
-    /*
+    
     two = {
       name = "${var.resources-prefix}-node-group-2"
 
@@ -102,7 +102,7 @@ module "eks" {
       max_size     = 1
       desired_size = 1
     }
-    */ 
+    
   }
 }
 
@@ -211,7 +211,7 @@ resource "null_resource" "console_config" {
 
 resource "null_resource" "create_hello_world_service" {
   provisioner "local-exec" {
-    command = "cd .. && cd kubernetes-yaml && kubectl apply -f eks-ingress-hello.yaml && kubectl get ingress"
+    command = "cd .. && cd kubernetes-yaml && kubectl apply -f eks-ingress-hello.yaml && sleep 10 && kubectl get ingress"
   }
 
   depends_on = [null_resource.console_config]
