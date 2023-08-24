@@ -13,6 +13,7 @@ A Rancher hello world should appear. Although the page says "Rancher", It is onl
 
 Code initially based on the repository located in:
 - https://github.com/hashicorp/learn-terraform-provision-eks-cluster
+- Please check the terraform OSS requirements in https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks
 
 IAM Account required permissions:
 
