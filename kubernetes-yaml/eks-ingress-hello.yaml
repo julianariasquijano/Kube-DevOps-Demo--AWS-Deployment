@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello
+  name: hello-eks
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app_version: caddy
+      app_version: hello-eks
   template:
     metadata:
       labels:
         app: hello
-        app_version: caddy
+        app_version: hello-eks
     spec:
       containers:
-      - name: hello
-        image: caddy
+      - name: hello-eks
+        image: rancher/hello-world
         ports:
         - containerPort: 80
         env:
